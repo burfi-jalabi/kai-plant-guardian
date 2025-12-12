@@ -2,12 +2,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Leaf, Mail, Lock, Eye, EyeOff, ArrowLeft, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Leaf, Mail, Lock, Eye, EyeOff, ArrowLeft, User, Zap } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
+  const handleDemoLogin = () => {
+    navigate("/dashboard");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-hero flex">
@@ -200,6 +205,18 @@ const Auth = () => {
               {/* Submit button */}
               <Button type="submit" variant="hero" size="lg" className="w-full mt-6">
                 {isLogin ? "Sign In" : "Create Account"}
+              </Button>
+
+              {/* Demo Login Button */}
+              <Button 
+                type="button" 
+                variant="gold" 
+                size="lg" 
+                className="w-full mt-3"
+                onClick={handleDemoLogin}
+              >
+                <Zap className="w-5 h-5" />
+                Demo Login (Skip Auth)
               </Button>
             </form>
 
