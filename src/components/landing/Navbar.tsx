@@ -1,6 +1,7 @@
 import { Leaf, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,14 +18,14 @@ const Navbar = () => {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform">
               <Leaf className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-display text-xl font-semibold text-foreground hidden sm:block">
               PlantCare
             </span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-8">
@@ -41,11 +42,11 @@ const Navbar = () => {
 
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-4">
-            <Button variant="ghost" size="sm">
-              Login
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/auth">Login</Link>
             </Button>
-            <Button variant="default" size="sm">
-              Get Started
+            <Button variant="default" size="sm" asChild>
+              <Link to="/auth">Get Started</Link>
             </Button>
           </div>
 
@@ -74,11 +75,11 @@ const Navbar = () => {
                 </a>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                <Button variant="ghost" size="sm">
-                  Login
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>Login</Link>
                 </Button>
-                <Button variant="default" size="sm">
-                  Get Started
+                <Button variant="default" size="sm" asChild>
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>Get Started</Link>
                 </Button>
               </div>
             </div>
