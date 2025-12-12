@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-plants.jpg";
 
 const Hero = () => {
@@ -37,9 +38,11 @@ const Hero = () => {
             </p>
 
             <div className="animate-fade-up-delay-3 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button variant="hero" size="xl">
-                Get Started
-                <ArrowRight className="w-5 h-5" />
+              <Button variant="hero" size="xl" asChild>
+                <Link to="/auth">
+                  Get Started
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
               </Button>
               <Button variant="heroOutline" size="xl">
                 <Play className="w-5 h-5" />
