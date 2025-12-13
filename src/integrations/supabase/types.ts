@@ -14,7 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          created_at: string
+          id: number
+          is_read: boolean | null
+          message: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          is_read?: boolean | null
+          message: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          is_read?: boolean | null
+          message?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      disease_scans: {
+        Row: {
+          confidence: number
+          created_at: string
+          disease_name: string
+          id: string
+          image_url: string | null
+          is_healthy: boolean
+          severity: string | null
+          treatment: string | null
+          user_id: string | null
+        }
+        Insert: {
+          confidence: number
+          created_at?: string
+          disease_name: string
+          id?: string
+          image_url?: string | null
+          is_healthy?: boolean
+          severity?: string | null
+          treatment?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          disease_name?: string
+          id?: string
+          image_url?: string | null
+          is_healthy?: boolean
+          severity?: string | null
+          treatment?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          phone_number: string | null
+          sms_alerts: boolean | null
+          updated_at: string
+          user_id: string
+          whatsapp_alerts: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone_number?: string | null
+          sms_alerts?: boolean | null
+          updated_at?: string
+          user_id: string
+          whatsapp_alerts?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone_number?: string | null
+          sms_alerts?: boolean | null
+          updated_at?: string
+          user_id?: string
+          whatsapp_alerts?: boolean | null
+        }
+        Relationships: []
+      }
+      sensor_readings: {
+        Row: {
+          co2_level: number | null
+          created_at: string
+          device_id: string
+          humidity: number
+          id: string
+          light_intensity: number
+          soil_moisture: number
+          temperature: number
+        }
+        Insert: {
+          co2_level?: number | null
+          created_at?: string
+          device_id: string
+          humidity: number
+          id?: string
+          light_intensity: number
+          soil_moisture: number
+          temperature: number
+        }
+        Update: {
+          co2_level?: number | null
+          created_at?: string
+          device_id?: string
+          humidity?: number
+          id?: string
+          light_intensity?: number
+          soil_moisture?: number
+          temperature?: number
+        }
+        Relationships: []
+      }
+      water_predictions: {
+        Row: {
+          confidence: number
+          created_at: string
+          id: string
+          next_watering_hours: number
+          recommended_amount_liters: number
+          was_triggered: boolean | null
+          zone_id: number
+        }
+        Insert: {
+          confidence: number
+          created_at?: string
+          id?: string
+          next_watering_hours: number
+          recommended_amount_liters: number
+          was_triggered?: boolean | null
+          zone_id: number
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          id?: string
+          next_watering_hours?: number
+          recommended_amount_liters?: number
+          was_triggered?: boolean | null
+          zone_id?: number
+        }
+        Relationships: []
+      }
+      zones: {
+        Row: {
+          created_at: string
+          id: number
+          name: string
+          plant_type: string | null
+          soil_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name: string
+          plant_type?: string | null
+          soil_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name?: string
+          plant_type?: string | null
+          soil_type?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
