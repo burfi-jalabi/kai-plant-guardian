@@ -4,7 +4,7 @@ import {
   Droplets, 
   Bug, 
   Settings, 
-  Leaf,
+  Sprout,
   LogOut,
   ChevronLeft
 } from "lucide-react";
@@ -46,11 +46,11 @@ export function DashboardSidebar() {
         <div className="flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
-              <Leaf className="w-5 h-5 text-primary-foreground" />
+              <Sprout className="w-5 h-5 text-primary-foreground" />
             </div>
             {!isCollapsed && (
               <div>
-                <h1 className="font-display text-lg font-bold text-foreground">PlantCare</h1>
+                <h1 className="font-display text-lg font-bold text-foreground">GrowSense AI</h1>
                 <p className="text-xs text-muted-foreground">Dashboard</p>
               </div>
             )}

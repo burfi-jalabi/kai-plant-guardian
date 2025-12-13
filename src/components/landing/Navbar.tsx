@@ -1,4 +1,4 @@
-import { Leaf, Menu, X } from "lucide-react";
+import { Sprout, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -20,10 +20,10 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform">
-              <Leaf className="w-5 h-5 text-primary-foreground" />
+              <Sprout className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-display text-xl font-semibold text-foreground hidden sm:block">
-              PlantCare
+              GrowSense AI
             </span>
           </Link>
 

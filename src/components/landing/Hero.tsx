@@ -28,7 +28,7 @@ const Hero = () => {
               Welcome to{" "}
               <span className="text-gradient-primary">Predictive</span>
               <br />
-              <span className="text-gradient-gold">PlantCare</span> System
+              <span className="text-gradient-gold">GrowSense AI</span>
             </h1>
 
             <p className="animate-fade-up-delay-2 text-lg lg:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
