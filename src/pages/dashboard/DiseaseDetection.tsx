@@ -1,6 +1,8 @@
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
-import { Bug, Camera, Shield, AlertTriangle, CheckCircle, Upload, Search } from "lucide-react";
+import { Bug, Camera, Shield, AlertTriangle, CheckCircle, Upload, Search, Wifi, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 const recentScans = [
   { id: 1, plant: "Tomato Plant #12", status: "healthy", confidence: 98, date: "Today, 10:30 AM" },
@@ -29,6 +31,29 @@ const diseases = [
 ];
 
 export default function DiseaseDetection() {
+  const [esp32Url, setEsp32Url] = useState("http://192.168.1.100");
+  const [isConnected, setIsConnected] = useState(false);
+  const [snapshotPreview, setSnapshotPreview] = useState<string | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  const handleCaptureSnapshot = async () => {
+    setIsCapturing(true);
+    // Simulate ESP32 CAM capture - in production, this would fetch from the actual ESP32 CAM
+    setTimeout(() => {
+      setSnapshotPreview("/placeholder.svg");
+      setIsConnected(true);
+      setIsCapturing(false);
+    }, 1500);
+  };
+
+  const handleTestConnection = () => {
+    setIsCapturing(true);
+    setTimeout(() => {
+      setIsConnected(true);
+      setIsCapturing(false);
+    }, 1000);
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-background">
       <DashboardTopbar title="Disease Detection" />
@@ -77,25 +102,106 @@ export default function DiseaseDetection() {
           </div>
         </div>
 
-        {/* Upload Section */}
+        {/* ESP32 CAM Section */}
         <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 mb-6">
-          <h3 className="font-semibold text-foreground mb-4">Scan New Plant</h3>
-          <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
-            <div className="w-16 h-16 rounded-2xl bg-muted mx-auto mb-4 flex items-center justify-center">
-              <Upload className="w-8 h-8 text-muted-foreground" />
+          <div className="flex items-center gap-2 mb-4">
+            <Camera className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-foreground">ESP32 CAM Snapshot</h3>
+            <div className={`ml-2 flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isConnected ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+              <Wifi className="w-3 h-3" />
+              {isConnected ? 'Connected' : 'Disconnected'}
+            </div>
+          </div>
+          
+          {/* ESP32 CAM URL Input */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <div className="flex-1">
+              <label className="text-sm text-muted-foreground mb-1 block">ESP32 CAM IP Address</label>
+              <Input 
+                value={esp32Url} 
+                onChange={(e) => setEsp32Url(e.target.value)}
+                placeholder="http://192.168.1.100"
+                className="font-mono"
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleTestConnection}
+                disabled={isCapturing}
+              >
+                <Wifi className="w-4 h-4 mr-2" />
+                Test
+              </Button>
+              <Button 
+                onClick={handleCaptureSnapshot}
+                disabled={isCapturing}
+              >
+                {isCapturing ? (
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4 mr-2" />
+                )}
+                Capture
+              </Button>
+            </div>
+          </div>
+
+          {/* Snapshot Preview */}
+          <div className="border-2 border-dashed border-border rounded-xl p-4 text-center">
+            {snapshotPreview ? (
+              <div className="space-y-4">
+                <div className="relative w-full max-w-md mx-auto aspect-video bg-muted rounded-lg overflow-hidden">
+                  <img 
+                    src={snapshotPreview} 
+                    alt="ESP32 CAM Snapshot" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs text-muted-foreground">
+                    Live Preview
+                  </div>
+                </div>
+                <div className="flex justify-center gap-3">
+                  <Button onClick={handleCaptureSnapshot} disabled={isCapturing}>
+                    {isCapturing ? (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                    )}
+                    Recapture
+                  </Button>
+                  <Button variant="default">
+                    <Search className="w-4 h-4 mr-2" />
+                    Analyze for Disease
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="py-8">
+                <div className="w-16 h-16 rounded-2xl bg-muted mx-auto mb-4 flex items-center justify-center">
+                  <Camera className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <p className="text-foreground font-medium mb-1">Connect to ESP32 CAM</p>
+                <p className="text-sm text-muted-foreground mb-4">Enter your ESP32 CAM IP address and capture a snapshot</p>
+                <p className="text-xs text-muted-foreground">Supported: ESP32-CAM, AI-Thinker CAM</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Manual Upload Section */}
+        <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 mb-6">
+          <h3 className="font-semibold text-foreground mb-4">Or Upload Image Manually</h3>
+          <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
+            <div className="w-12 h-12 rounded-xl bg-muted mx-auto mb-3 flex items-center justify-center">
+              <Upload className="w-6 h-6 text-muted-foreground" />
             </div>
             <p className="text-foreground font-medium mb-1">Drop an image here or click to upload</p>
-            <p className="text-sm text-muted-foreground mb-4">Supports JPG, PNG up to 10MB</p>
-            <div className="flex justify-center gap-3">
-              <Button variant="default" size="sm">
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Image
-              </Button>
-              <Button variant="outline" size="sm">
-                <Camera className="w-4 h-4 mr-2" />
-                Take Photo
-              </Button>
-            </div>
+            <p className="text-sm text-muted-foreground mb-3">Supports JPG, PNG up to 10MB</p>
+            <Button variant="outline" size="sm">
+              <Upload className="w-4 h-4 mr-2" />
+              Browse Files
+            </Button>
           </div>
         </div>
 
