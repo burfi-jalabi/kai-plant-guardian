@@ -1,8 +1,10 @@
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
-import { Droplets, Calendar, Clock, TrendingDown, Leaf, CloudRain, Thermometer, MapPin } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, BarChart, Bar, ComposedChart } from "recharts";
+import { Droplets, Calendar, Clock, TrendingDown, Leaf, CloudRain, MapPin, Gauge, Hand } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Bar, ComposedChart } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
 
 const predictionData = [
   { day: "Today", moisture: 68, predicted: 68, temperature: 24, rainfall: 0 },
@@ -46,11 +48,87 @@ const weatherForecast = [
 ];
 
 export default function WaterPrediction() {
+  const [manualOverride, setManualOverride] = useState(false);
+
+  const nextWateringHours = 2;
+  const nextWateringMinutes = 15;
+  const confidenceLevel = 92;
+
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-background">
       <DashboardTopbar title="Water Prediction" />
       
       <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        {/* Next Watering Hero Card */}
+        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl p-6 shadow-soft mb-6 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-8 -mb-8" />
+          <div className="relative z-10">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-5 h-5" />
+                  <span className="text-sm font-medium opacity-90">Next Watering Needed In</span>
+                </div>
+                <p className="text-4xl lg:text-5xl font-bold mb-1">
+                  {nextWateringHours}h {nextWateringMinutes}m
+                </p>
+                <p className="text-sm opacity-80">Zone A - Greenhouse (12L recommended)</p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                {/* Confidence Indicator */}
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Gauge className="w-4 h-4" />
+                    <span className="text-xs font-medium">Confidence</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 h-2 bg-white/30 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-white rounded-full transition-all duration-500" 
+                        style={{ width: `${confidenceLevel}%` }} 
+                      />
+                    </div>
+                    <span className="text-sm font-bold">{confidenceLevel}%</span>
+                  </div>
+                </div>
+                
+                {/* Manual Override */}
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Hand className="w-4 h-4" />
+                    <span className="text-xs font-medium">Manual Override</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Switch 
+                      checked={manualOverride} 
+                      onCheckedChange={setManualOverride}
+                      className="data-[state=checked]:bg-white data-[state=checked]:text-blue-500"
+                    />
+                    <span className="text-sm">{manualOverride ? 'Active' : 'Auto'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {manualOverride && (
+              <div className="mt-4 pt-4 border-t border-white/20">
+                <p className="text-sm mb-3 opacity-90">Manual mode active - AI predictions paused</p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="secondary" className="bg-white text-blue-600 hover:bg-white/90">
+                    <Droplets className="w-4 h-4 mr-2" />
+                    Water Now
+                  </Button>
+                  <Button size="sm" variant="outline" className="border-white/50 text-white hover:bg-white/20">
+                    Skip Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">
@@ -78,12 +156,12 @@ export default function WaterPrediction() {
           <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-yellow-500" />
+                <Calendar className="w-5 h-5 text-yellow-500" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">Next Watering</p>
-            <p className="text-2xl font-bold text-foreground">2h 15m</p>
-            <p className="text-xs text-muted-foreground mt-1">Zone A - Greenhouse</p>
+            <p className="text-sm text-muted-foreground">Scheduled Today</p>
+            <p className="text-2xl font-bold text-foreground">3</p>
+            <p className="text-xs text-muted-foreground mt-1">Watering events</p>
           </div>
 
           <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">

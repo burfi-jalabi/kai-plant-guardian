@@ -1,8 +1,10 @@
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
-import { Bug, Camera, Shield, AlertTriangle, CheckCircle, Upload, Search, Wifi, RefreshCw } from "lucide-react";
+import { Bug, Camera, Shield, AlertTriangle, CheckCircle, Upload, Search, Wifi, RefreshCw, Droplets, Bell, MessageSquare, Leaf, BarChart3, Calendar, TrendingUp, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const recentScans = [
   { id: 1, plant: "Tomato Plant #12", status: "healthy", confidence: 98, date: "Today, 10:30 AM" },
@@ -30,15 +32,40 @@ const diseases = [
   },
 ];
 
+const plants = [
+  { id: 1, name: "Tomato Plant #12", zone: "Zone A", health: 98, lastScan: "2h ago" },
+  { id: 2, name: "Rose Bush #3", zone: "Zone B", health: 72, lastScan: "3h ago", issue: "Powdery Mildew" },
+  { id: 3, name: "Basil Cluster", zone: "Zone A", health: 95, lastScan: "1d ago" },
+  { id: 4, name: "Pepper Plant #7", zone: "Zone C", health: 99, lastScan: "1d ago" },
+  { id: 5, name: "Cucumber Vine", zone: "Zone B", health: 88, lastScan: "2d ago" },
+];
+
+const seasonalInsights = [
+  { season: "Current", insight: "High humidity expected - monitor for fungal diseases", risk: "medium" },
+  { season: "Next Week", insight: "Temperature drop may stress tropical plants", risk: "low" },
+  { season: "This Month", insight: "Peak pest season - increase monitoring frequency", risk: "high" },
+];
+
+const analyticsData = {
+  totalScans: 156,
+  issuesDetected: 12,
+  issuesResolved: 10,
+  avgDetectionTime: "2.3s",
+  accuracy: 99.2,
+};
+
 export default function DiseaseDetection() {
   const [esp32Url, setEsp32Url] = useState("http://192.168.1.100");
   const [isConnected, setIsConnected] = useState(false);
   const [snapshotPreview, setSnapshotPreview] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [autoIrrigation, setAutoIrrigation] = useState(true);
+  const [whatsappAlerts, setWhatsappAlerts] = useState(false);
+  const [smsAlerts, setSmsAlerts] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleCaptureSnapshot = async () => {
     setIsCapturing(true);
-    // Simulate ESP32 CAM capture - in production, this would fetch from the actual ESP32 CAM
     setTimeout(() => {
       setSnapshotPreview("/placeholder.svg");
       setIsConnected(true);
@@ -102,6 +129,77 @@ export default function DiseaseDetection() {
           </div>
         </div>
 
+        {/* Control Toggles */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Auto Irrigation */}
+          <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                  <Droplets className="w-5 h-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Auto Irrigation</p>
+                  <p className="text-xs text-muted-foreground">Water when disease detected</p>
+                </div>
+              </div>
+              <Switch checked={autoIrrigation} onCheckedChange={setAutoIrrigation} />
+            </div>
+          </div>
+
+          {/* WhatsApp Alerts */}
+          <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-green-500" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">WhatsApp Alerts</p>
+                  <p className="text-xs text-muted-foreground">Get instant notifications</p>
+                </div>
+              </div>
+              <Switch checked={whatsappAlerts} onCheckedChange={setWhatsappAlerts} />
+            </div>
+          </div>
+
+          {/* SMS Alerts */}
+          <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                  <Bell className="w-5 h-5 text-purple-500" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">SMS Alerts</p>
+                  <p className="text-xs text-muted-foreground">Text message notifications</p>
+                </div>
+              </div>
+              <Switch checked={smsAlerts} onCheckedChange={setSmsAlerts} />
+            </div>
+          </div>
+        </div>
+
+        {/* Alert Phone Number Input */}
+        {(whatsappAlerts || smsAlerts) && (
+          <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <label className="text-sm text-muted-foreground mb-1 block">Phone Number for Alerts</label>
+                <Input 
+                  value={phoneNumber} 
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+1 234 567 8900"
+                  type="tel"
+                />
+              </div>
+              <div className="flex items-end">
+                <Button>Save Number</Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ESP32 CAM Section */}
         <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 mb-6">
           <div className="flex items-center gap-2 mb-4">
@@ -113,7 +211,6 @@ export default function DiseaseDetection() {
             </div>
           </div>
           
-          {/* ESP32 CAM URL Input */}
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <div className="flex-1">
               <label className="text-sm text-muted-foreground mb-1 block">ESP32 CAM IP Address</label>
@@ -125,49 +222,29 @@ export default function DiseaseDetection() {
               />
             </div>
             <div className="flex items-end gap-2">
-              <Button 
-                variant="outline" 
-                onClick={handleTestConnection}
-                disabled={isCapturing}
-              >
+              <Button variant="outline" onClick={handleTestConnection} disabled={isCapturing}>
                 <Wifi className="w-4 h-4 mr-2" />
                 Test
               </Button>
-              <Button 
-                onClick={handleCaptureSnapshot}
-                disabled={isCapturing}
-              >
-                {isCapturing ? (
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Camera className="w-4 h-4 mr-2" />
-                )}
+              <Button onClick={handleCaptureSnapshot} disabled={isCapturing}>
+                {isCapturing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Camera className="w-4 h-4 mr-2" />}
                 Capture
               </Button>
             </div>
           </div>
 
-          {/* Snapshot Preview */}
           <div className="border-2 border-dashed border-border rounded-xl p-4 text-center">
             {snapshotPreview ? (
               <div className="space-y-4">
                 <div className="relative w-full max-w-md mx-auto aspect-video bg-muted rounded-lg overflow-hidden">
-                  <img 
-                    src={snapshotPreview} 
-                    alt="ESP32 CAM Snapshot" 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={snapshotPreview} alt="ESP32 CAM Snapshot" className="w-full h-full object-cover" />
                   <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs text-muted-foreground">
                     Live Preview
                   </div>
                 </div>
                 <div className="flex justify-center gap-3">
                   <Button onClick={handleCaptureSnapshot} disabled={isCapturing}>
-                    {isCapturing ? (
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                    )}
+                    {isCapturing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                     Recapture
                   </Button>
                   <Button variant="default">
@@ -189,21 +266,136 @@ export default function DiseaseDetection() {
           </div>
         </div>
 
-        {/* Manual Upload Section */}
+        {/* Multi-Plant Support */}
         <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 mb-6">
-          <h3 className="font-semibold text-foreground mb-4">Or Upload Image Manually</h3>
-          <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
-            <div className="w-12 h-12 rounded-xl bg-muted mx-auto mb-3 flex items-center justify-center">
-              <Upload className="w-6 h-6 text-muted-foreground" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Leaf className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Multi-Plant Monitoring</h3>
+              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{plants.length} plants</span>
             </div>
-            <p className="text-foreground font-medium mb-1">Drop an image here or click to upload</p>
-            <p className="text-sm text-muted-foreground mb-3">Supports JPG, PNG up to 10MB</p>
             <Button variant="outline" size="sm">
-              <Upload className="w-4 h-4 mr-2" />
-              Browse Files
+              <Plus className="w-4 h-4 mr-2" />
+              Add Plant
             </Button>
           </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left text-sm font-medium text-muted-foreground py-2">Plant</th>
+                  <th className="text-left text-sm font-medium text-muted-foreground py-2">Zone</th>
+                  <th className="text-left text-sm font-medium text-muted-foreground py-2">Health</th>
+                  <th className="text-left text-sm font-medium text-muted-foreground py-2">Last Scan</th>
+                  <th className="text-left text-sm font-medium text-muted-foreground py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {plants.map((plant) => (
+                  <tr key={plant.id} className="border-b border-border/50 last:border-0">
+                    <td className="py-3 font-medium text-foreground">{plant.name}</td>
+                    <td className="py-3 text-muted-foreground">{plant.zone}</td>
+                    <td className="py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full ${plant.health >= 90 ? 'bg-primary' : plant.health >= 70 ? 'bg-yellow-500' : 'bg-destructive'}`}
+                            style={{ width: `${plant.health}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-foreground">{plant.health}%</span>
+                      </div>
+                    </td>
+                    <td className="py-3 text-sm text-muted-foreground">{plant.lastScan}</td>
+                    <td className="py-3">
+                      {plant.issue ? (
+                        <span className="text-xs bg-yellow-500/10 text-yellow-600 px-2 py-1 rounded-full">{plant.issue}</span>
+                      ) : (
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Healthy</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        {/* Tabs for Analytics & Seasonal */}
+        <Tabs defaultValue="analytics" className="mb-6">
+          <TabsList className="mb-4">
+            <TabsTrigger value="analytics">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Farmer Analytics
+            </TabsTrigger>
+            <TabsTrigger value="seasonal">
+              <Calendar className="w-4 h-4 mr-2" />
+              Seasonal Insights
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="analytics">
+            <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+              <h3 className="font-semibold text-foreground mb-4">Detection Analytics</h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="text-center p-4 rounded-xl bg-muted/50">
+                  <p className="text-2xl font-bold text-foreground">{analyticsData.totalScans}</p>
+                  <p className="text-xs text-muted-foreground">Total Scans</p>
+                </div>
+                <div className="text-center p-4 rounded-xl bg-muted/50">
+                  <p className="text-2xl font-bold text-yellow-500">{analyticsData.issuesDetected}</p>
+                  <p className="text-xs text-muted-foreground">Issues Found</p>
+                </div>
+                <div className="text-center p-4 rounded-xl bg-muted/50">
+                  <p className="text-2xl font-bold text-primary">{analyticsData.issuesResolved}</p>
+                  <p className="text-xs text-muted-foreground">Resolved</p>
+                </div>
+                <div className="text-center p-4 rounded-xl bg-muted/50">
+                  <p className="text-2xl font-bold text-foreground">{analyticsData.avgDetectionTime}</p>
+                  <p className="text-xs text-muted-foreground">Avg Detection</p>
+                </div>
+                <div className="text-center p-4 rounded-xl bg-muted/50">
+                  <p className="text-2xl font-bold text-teal-500">{analyticsData.accuracy}%</p>
+                  <p className="text-xs text-muted-foreground">Accuracy</p>
+                </div>
+              </div>
+              <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/10">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">This Week's Performance</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Disease detection rate improved by 12% compared to last week. Early detection has prevented 3 potential outbreaks.</p>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="seasonal">
+            <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+              <h3 className="font-semibold text-foreground mb-4">Seasonal Risk Insights</h3>
+              <div className="space-y-3">
+                {seasonalInsights.map((item, index) => (
+                  <div key={index} className={`p-4 rounded-xl border ${
+                    item.risk === 'high' ? 'bg-destructive/5 border-destructive/20' :
+                    item.risk === 'medium' ? 'bg-yellow-500/5 border-yellow-500/20' :
+                    'bg-blue-500/5 border-blue-500/20'
+                  }`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-foreground">{item.season}</span>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        item.risk === 'high' ? 'bg-destructive/10 text-destructive' :
+                        item.risk === 'medium' ? 'bg-yellow-500/10 text-yellow-600' :
+                        'bg-blue-500/10 text-blue-600'
+                      }`}>
+                        {item.risk.charAt(0).toUpperCase() + item.risk.slice(1)} Risk
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{item.insight}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Scans */}
