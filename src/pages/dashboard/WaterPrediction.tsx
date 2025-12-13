@@ -5,8 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
+import { useWaterPrediction, useZones, useWeatherForecast } from "@/hooks/useDashboardData";
 
-const predictionData = [
+/**
+ * Water Prediction Page
+ * 
+ * API MAPPINGS:
+ * - Hero Card: GET /api/water/prediction → next_watering_hours, confidence, zone
+ * - Weather Forecast: GET /api/weather → forecast data
+ * - Zone Status: GET /api/zones → zone list with moisture levels
+ */
+
+// Fallback data when API is unavailable
+const fallbackPredictionData = [
   { day: "Today", moisture: 68, predicted: 68, temperature: 24, rainfall: 0 },
   { day: "Tomorrow", moisture: null, predicted: 55, temperature: 26, rainfall: 0 },
   { day: "Day 3", moisture: null, predicted: 42, temperature: 28, rainfall: 5 },
@@ -16,7 +27,7 @@ const predictionData = [
   { day: "Day 7", moisture: null, predicted: 52, temperature: 27, rainfall: 0 },
 ];
 
-const hourlyData = [
+const fallbackHourlyData = [
   { hour: "6AM", moisture: 68, evaporation: 2 },
   { hour: "9AM", moisture: 65, evaporation: 5 },
   { hour: "12PM", moisture: 58, evaporation: 12 },
@@ -25,21 +36,21 @@ const hourlyData = [
   { hour: "9PM", moisture: 60, evaporation: 3 },
 ];
 
-const zones = [
-  { id: 1, name: "Zone A - Greenhouse", nextWater: "In 2 hours", status: "urgent", moisture: 35, soilType: "Loamy" },
-  { id: 2, name: "Zone B - Garden", nextWater: "Tomorrow 8 AM", status: "normal", moisture: 58, soilType: "Sandy" },
-  { id: 3, name: "Zone C - Indoor", nextWater: "In 3 days", status: "optimal", moisture: 72, soilType: "Clay" },
-  { id: 4, name: "Zone D - Nursery", nextWater: "Tomorrow 6 PM", status: "normal", moisture: 52, soilType: "Loamy" },
+const fallbackZones = [
+  { id: 1, name: "Zone A - Greenhouse", next_water: "In 2 hours", status: "urgent" as const, moisture: 35, soil_type: "Loamy" },
+  { id: 2, name: "Zone B - Garden", next_water: "Tomorrow 8 AM", status: "normal" as const, moisture: 58, soil_type: "Sandy" },
+  { id: 3, name: "Zone C - Indoor", next_water: "In 3 days", status: "optimal" as const, moisture: 72, soil_type: "Clay" },
+  { id: 4, name: "Zone D - Nursery", next_water: "Tomorrow 6 PM", status: "normal" as const, moisture: 52, soil_type: "Loamy" },
 ];
 
-const schedule = [
+const fallbackSchedule = [
   { id: 1, zone: "Zone A", time: "Today, 2:00 PM", duration: "15 min", amount: "12L" },
   { id: 2, zone: "Zone B", time: "Tomorrow, 8:00 AM", duration: "20 min", amount: "18L" },
   { id: 3, zone: "Zone D", time: "Tomorrow, 6:00 PM", duration: "10 min", amount: "8L" },
   { id: 4, zone: "Zone C", time: "Dec 15, 9:00 AM", duration: "12 min", amount: "10L" },
 ];
 
-const weatherForecast = [
+const fallbackWeatherForecast = [
   { day: "Today", icon: "☀️", temp: "24°C", humidity: "45%", rain: "0%" },
   { day: "Tomorrow", icon: "⛅", temp: "26°C", humidity: "52%", rain: "10%" },
   { day: "Day 3", icon: "🌧️", temp: "22°C", humidity: "78%", rain: "80%" },
@@ -50,16 +61,37 @@ const weatherForecast = [
 export default function WaterPrediction() {
   const [manualOverride, setManualOverride] = useState(false);
 
-  const nextWateringHours = 2;
-  const nextWateringMinutes = 15;
-  const confidenceLevel = 92;
+  // Fetch data from backend APIs
+  const { data: prediction, isLoading: predictionLoading, error: predictionError } = useWaterPrediction();
+  const { data: zones, isLoading: zonesLoading } = useZones();
+  const { data: weather, isLoading: weatherLoading } = useWeatherForecast();
+
+  // Use API data or fallback - GET /api/water/prediction
+  const nextWateringHours = prediction?.next_watering_hours ?? 2;
+  const nextWateringMinutes = prediction?.next_watering_minutes ?? 15;
+  const confidenceLevel = prediction?.confidence ?? 92;
+  const recommendedAmount = prediction?.recommended_amount_liters ?? 12;
+  const targetZone = prediction?.zone ?? "Zone A - Greenhouse";
+
+  // Zone data - GET /api/zones
+  const zoneList = zones || fallbackZones;
+
+  // Weather data - GET /api/weather
+  const weatherList = weather || fallbackWeatherForecast;
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-background">
       <DashboardTopbar title="Water Prediction" />
       
       <main className="flex-1 p-4 lg:p-6 overflow-auto">
-        {/* Next Watering Hero Card */}
+        {/* API Error Banner */}
+        {predictionError && (
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-sm text-destructive">
+            Unable to fetch prediction data. Showing estimated values.
+          </div>
+        )}
+
+        {/* Next Watering Hero Card - GET /api/water/prediction */}
         <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl p-6 shadow-soft mb-6 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-8 -mb-8" />
@@ -69,15 +101,16 @@ export default function WaterPrediction() {
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-5 h-5" />
                   <span className="text-sm font-medium opacity-90">Next Watering Needed In</span>
+                  {predictionLoading && <span className="text-xs opacity-70">(Loading...)</span>}
                 </div>
                 <p className="text-4xl lg:text-5xl font-bold mb-1">
                   {nextWateringHours}h {nextWateringMinutes}m
                 </p>
-                <p className="text-sm opacity-80">Zone A - Greenhouse (12L recommended)</p>
+                <p className="text-sm opacity-80">{targetZone} ({recommendedAmount}L recommended)</p>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                {/* Confidence Indicator */}
+                {/* Confidence Indicator - from prediction.confidence */}
                 <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Gauge className="w-4 h-4" />
@@ -176,14 +209,16 @@ export default function WaterPrediction() {
           </div>
         </div>
 
-        {/* Weather Forecast Bar */}
+        {/* Weather Forecast Bar - GET /api/weather */}
         <div className="bg-card rounded-2xl p-4 shadow-soft border border-border/50 mb-6">
           <div className="flex items-center gap-2 mb-3">
             <CloudRain className="w-5 h-5 text-blue-500" />
-            <h3 className="font-semibold text-foreground">Weather Forecast</h3>
+            <h3 className="font-semibold text-foreground">
+              {weatherLoading ? "Loading Weather..." : "Weather Forecast"}
+            </h3>
           </div>
           <div className="flex overflow-x-auto gap-4 pb-2">
-            {weatherForecast.map((day, index) => (
+            {weatherList.map((day, index) => (
               <div key={index} className={`flex-shrink-0 text-center p-3 rounded-xl min-w-[80px] ${index === 0 ? 'bg-primary/10 border border-primary/20' : 'bg-muted/50'}`}>
                 <p className="text-xs text-muted-foreground mb-1">{day.day}</p>
                 <p className="text-2xl mb-1">{day.icon}</p>
@@ -211,7 +246,7 @@ export default function WaterPrediction() {
             <TabsContent value="weekly" className="mt-0">
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={predictionData}>
+                  <ComposedChart data={fallbackPredictionData}>
                     <defs>
                       <linearGradient id="moistureGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(210, 100%, 50%)" stopOpacity={0.3}/>
@@ -263,7 +298,7 @@ export default function WaterPrediction() {
             <TabsContent value="hourly" className="mt-0">
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={hourlyData}>
+                  <LineChart data={fallbackHourlyData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(140, 20%, 88%)" />
                     <XAxis dataKey="hour" stroke="hsl(150, 15%, 45%)" fontSize={12} />
                     <YAxis yAxisId="left" stroke="hsl(210, 100%, 50%)" fontSize={12} unit="%" />
@@ -314,14 +349,16 @@ export default function WaterPrediction() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Zone Status */}
+          {/* Zone Status - GET /api/zones */}
           <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
             <div className="flex items-center gap-2 mb-4">
               <MapPin className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Zone Status</h3>
+              <h3 className="font-semibold text-foreground">
+                {zonesLoading ? "Loading Zones..." : "Zone Status"}
+              </h3>
             </div>
             <div className="space-y-3">
-              {zones.map((zone) => (
+              {zoneList.map((zone) => (
                 <div key={zone.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${
@@ -332,8 +369,8 @@ export default function WaterPrediction() {
                     <div>
                       <p className="font-medium text-foreground">{zone.name}</p>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm text-muted-foreground">{zone.nextWater}</p>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{zone.soilType}</span>
+                        <p className="text-sm text-muted-foreground">{zone.next_water}</p>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{zone.soil_type}</span>
                       </div>
                     </div>
                   </div>
@@ -348,18 +385,13 @@ export default function WaterPrediction() {
 
           {/* Upcoming Schedule */}
           <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-blue-500" />
-                <h3 className="font-semibold text-foreground">Watering Schedule</h3>
-              </div>
-              <Button variant="outline" size="sm">Edit</Button>
+            <div className="flex items-center gap-2 mb-4">
+              <Calendar className="w-5 h-5 text-yellow-500" />
+              <h3 className="font-semibold text-foreground">Upcoming Schedule</h3>
             </div>
             <div className="space-y-3">
-              {schedule.map((item, index) => (
-                <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl ${
-                  index === 0 ? 'bg-primary/10 border border-primary/20' : 'bg-muted/50'
-                }`}>
+              {fallbackSchedule.map((item) => (
+                <div key={item.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
                   <div>
                     <p className="font-medium text-foreground">{item.zone}</p>
                     <p className="text-sm text-muted-foreground">{item.time}</p>
