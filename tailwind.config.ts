@@ -53,21 +53,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Forest theme specific
-        emerald: {
-          DEFAULT: "hsl(145, 70%, 45%)",
-          glow: "hsl(145, 75%, 50%)",
-          dark: "hsl(145, 65%, 32%)",
-        },
-        lime: {
-          DEFAULT: "hsl(85, 75%, 55%)",
-          glow: "hsl(85, 80%, 60%)",
-        },
-        forest: {
-          deep: "hsl(150, 35%, 6%)",
-          dark: "hsl(150, 30%, 9%)",
-          muted: "hsl(150, 25%, 14%)",
-        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

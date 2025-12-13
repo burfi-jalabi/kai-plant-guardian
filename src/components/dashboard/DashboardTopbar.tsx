@@ -2,7 +2,6 @@ import { Bell, Search, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSidebar } from "@/components/ui/sidebar";
-import { PlantToggle } from "@/components/PlantToggle";
 
 interface DashboardTopbarProps {
   title: string;
@@ -35,18 +34,15 @@ export function DashboardTopbar({ title }: DashboardTopbarProps) {
             />
           </div>
 
-          {/* Plant Theme Toggle */}
-          <PlantToggle />
-
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full sensor-pulse" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
           </Button>
 
           {/* User avatar */}
           <Button variant="ghost" size="icon" className="rounded-full">
-            <div className="w-8 h-8 rounded-full bg-gradient-glow flex items-center justify-center shadow-glow">
+            <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
               <User className="w-4 h-4 text-primary-foreground" />
             </div>
           </Button>

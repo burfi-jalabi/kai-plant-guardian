@@ -41,18 +41,16 @@ export function DashboardSidebar() {
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar className="border-r border-border bg-card leaf-pattern">
+    <Sidebar className="border-r border-border bg-card">
       <SidebarHeader className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-glow flex items-center justify-center shadow-emerald glow-pulse">
+          <Link to="/dashboard" className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
               <Sprout className="w-5 h-5 text-primary-foreground" />
             </div>
             {!isCollapsed && (
               <div>
-                <h1 className="font-display text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                  GrowSense AI
-                </h1>
+                <h1 className="font-display text-lg font-bold text-foreground">GrowSense AI</h1>
                 <p className="text-xs text-muted-foreground">Dashboard</p>
               </div>
             )}
@@ -61,7 +59,7 @@ export function DashboardSidebar() {
             variant="ghost" 
             size="icon" 
             onClick={toggleSidebar}
-            className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+            className="h-8 w-8"
           >
             <ChevronLeft className={`w-4 h-4 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
           </Button>
@@ -70,27 +68,21 @@ export function DashboardSidebar() {
 
       <SidebarContent className="p-2">
         <SidebarGroup>
-          <SidebarGroupLabel className={`${isCollapsed ? "sr-only" : ""} text-muted-foreground/70 uppercase text-xs tracking-wider`}>
+          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
             Main Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavItems.map((item, index) => (
+              {mainNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 
                       to={item.url} 
                       end={item.url === "/dashboard"}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
-                      activeClassName="bg-primary/15 text-primary font-medium shadow-glow"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                      activeClassName="bg-primary/10 text-primary font-medium"
                     >
-                      <div className="relative">
-                        <item.icon className="w-5 h-5 shrink-0" />
-                        {/* Pulsing dot for active sensors */}
-                        {item.title === "Sensor Data" && (
-                          <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full sensor-pulse-delay-${index}`} />
-                        )}
-                      </div>
+                      <item.icon className="w-5 h-5 shrink-0" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -101,7 +93,7 @@ export function DashboardSidebar() {
         </SidebarGroup>
 
         <SidebarGroup className="mt-auto">
-          <SidebarGroupLabel className={`${isCollapsed ? "sr-only" : ""} text-muted-foreground/70 uppercase text-xs tracking-wider`}>
+          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
             System
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -111,8 +103,8 @@ export function DashboardSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink 
                       to={item.url}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
-                      activeClassName="bg-primary/15 text-primary font-medium"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                      activeClassName="bg-primary/10 text-primary font-medium"
                     >
                       <item.icon className="w-5 h-5 shrink-0" />
                       {!isCollapsed && <span>{item.title}</span>}
@@ -128,7 +120,7 @@ export function DashboardSidebar() {
       <SidebarFooter className="p-4 border-t border-border">
         <Link 
           to="/"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
         >
           <LogOut className="w-5 h-5 shrink-0" />
           {!isCollapsed && <span>Logout</span>}
