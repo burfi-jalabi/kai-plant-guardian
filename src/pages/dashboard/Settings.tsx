@@ -40,7 +40,7 @@ export default function Settings() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" defaultValue="demo@plantcare.ai" className="bg-muted/50" />
+                <Input id="email" defaultValue="demo@growsense.ai" className="bg-muted/50" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>

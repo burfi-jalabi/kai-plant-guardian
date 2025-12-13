@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Leaf, Mail, Lock, Eye, EyeOff, ArrowLeft, User, Zap } from "lucide-react";
+import { Sprout, Mail, Lock, Eye, EyeOff, ArrowLeft, User, Zap } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 const Auth = () => {
@@ -31,7 +31,7 @@ const Auth = () => {
             {/* Animated plant icon */}
             <div className="mb-8 animate-float">
               <div className="w-24 h-24 mx-auto rounded-3xl bg-primary-foreground/10 backdrop-blur-sm flex items-center justify-center">
-                <Leaf className="w-12 h-12 text-primary-foreground" />
+                <Sprout className="w-12 h-12 text-primary-foreground" />
               </div>
             </div>
 
@@ -89,11 +89,11 @@ const Auth = () => {
             {/* Logo */}
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
-                <Leaf className="w-6 h-6 text-primary-foreground" />
+                <Sprout className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
                 <h1 className="font-display text-xl font-bold text-foreground">
-                  PlantCare
+                  GrowSense AI
                 </h1>
                 <p className="text-xs text-muted-foreground">Predictive System</p>
               </div>

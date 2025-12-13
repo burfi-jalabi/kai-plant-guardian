@@ -1,4 +1,4 @@
-import { Leaf } from "lucide-react";
+import { Sprout } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -11,10 +11,10 @@ const Footer = () => {
           <div className="flex flex-col items-center lg:items-start gap-4">
             <a href="#" className="flex items-center gap-2 group">
               <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-                <Leaf className="w-5 h-5 text-primary-foreground" />
+                <Sprout className="w-5 h-5 text-primary-foreground" />
               </div>
               <span className="font-display text-xl font-semibold text-background">
-                PlantCare
+                GrowSense AI
               </span>
             </a>
             <p className="text-background/60 text-sm max-w-xs text-center lg:text-left">
@@ -51,9 +51,8 @@ const Footer = () => {
             </a>
           </div>
 
-          {/* Copyright */}
           <p className="text-background/40 text-sm">
-            © {currentYear} PlantCare. All rights reserved.
+            © {currentYear} GrowSense AI. All rights reserved.
           </p>
         </div>
       </div>
