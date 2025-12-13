@@ -1,7 +1,19 @@
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
 import { Activity, Thermometer, Droplets, Sun, Wind, Gauge } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from "recharts";
+import { useSensorData } from "@/hooks/useDashboardData";
 
+/**
+ * Sensor Data Page
+ * 
+ * API MAPPINGS:
+ * - Live Readings: GET /api/sensors/current → temperature, humidity, light, co2
+ * - Charts use time-series data (can be extended with additional endpoints)
+ * 
+ * BACKEND TO CONFIRM: Add endpoint for historical sensor data if needed
+ */
+
+// Fallback chart data - BACKEND TO CONFIRM: Replace with GET /api/sensors/history
 const temperatureData = [
   { time: "00:00", value: 18 },
   { time: "04:00", value: 16 },
@@ -40,12 +52,29 @@ const sensors = [
 ];
 
 export default function SensorData() {
+  // Fetch live sensor readings - GET /api/sensors/current
+  const { data: sensorData, isLoading, error } = useSensorData();
+
+  // Helper to format sensor values with loading state
+  const formatValue = (value: number | undefined, unit: string) => {
+    if (isLoading) return "...";
+    if (value === undefined) return "N/A";
+    return `${value}${unit}`;
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-background">
       <DashboardTopbar title="Sensor Data" />
       
       <main className="flex-1 p-4 lg:p-6 overflow-auto">
-        {/* Live Readings */}
+        {/* API Error Banner */}
+        {error && (
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-sm text-destructive">
+            Unable to fetch live sensor data. Showing cached values.
+          </div>
+        )}
+
+        {/* Live Readings - GET /api/sensors/current */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-card rounded-2xl p-5 shadow-soft border border-border/50">
             <div className="flex items-center gap-3 mb-3">
@@ -54,7 +83,9 @@ export default function SensorData() {
               </div>
               <span className="text-sm text-muted-foreground">Temperature</span>
             </div>
-            <p className="text-3xl font-bold text-foreground">24°C</p>
+            <p className="text-3xl font-bold text-foreground">
+              {formatValue(sensorData?.temperature, "°C")}
+            </p>
             <p className="text-xs text-muted-foreground mt-1">Avg: 22°C</p>
           </div>
 
@@ -65,7 +96,9 @@ export default function SensorData() {
               </div>
               <span className="text-sm text-muted-foreground">Humidity</span>
             </div>
-            <p className="text-3xl font-bold text-foreground">68%</p>
+            <p className="text-3xl font-bold text-foreground">
+              {formatValue(sensorData?.humidity, "%")}
+            </p>
             <p className="text-xs text-muted-foreground mt-1">Optimal</p>
           </div>
 
@@ -76,7 +109,9 @@ export default function SensorData() {
               </div>
               <span className="text-sm text-muted-foreground">Light</span>
             </div>
-            <p className="text-3xl font-bold text-foreground">720 lux</p>
+            <p className="text-3xl font-bold text-foreground">
+              {formatValue(sensorData?.light, " lux")}
+            </p>
             <p className="text-xs text-muted-foreground mt-1">Bright</p>
           </div>
 
@@ -87,12 +122,14 @@ export default function SensorData() {
               </div>
               <span className="text-sm text-muted-foreground">CO2 Level</span>
             </div>
-            <p className="text-3xl font-bold text-foreground">412 ppm</p>
+            <p className="text-3xl font-bold text-foreground">
+              {formatValue(sensorData?.co2, " ppm")}
+            </p>
             <p className="text-xs text-muted-foreground mt-1">Normal</p>
           </div>
         </div>
 
-        {/* Charts */}
+        {/* Charts - BACKEND TO CONFIRM: Add historical data endpoints */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Temperature Chart */}
           <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
@@ -114,8 +151,15 @@ export default function SensorData() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(140, 20%, 88%)" />
                   <XAxis dataKey="time" stroke="hsl(150, 15%, 45%)" fontSize={12} />
-                  <YAxis stroke="hsl(150, 15%, 45%)" fontSize={12} />
-                  <Tooltip />
+                  <YAxis stroke="hsl(150, 15%, 45%)" fontSize={12} unit="°C" />
+                  <Tooltip 
+                    formatter={(value: number) => [`${value}°C`, 'Temperature']}
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(0, 0%, 100%)', 
+                      border: '1px solid hsl(140, 20%, 88%)',
+                      borderRadius: '8px'
+                    }}
+                  />
                   <Area type="monotone" dataKey="value" stroke="hsl(25, 95%, 53%)" strokeWidth={2} fill="url(#tempGradient)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -136,8 +180,15 @@ export default function SensorData() {
                 <LineChart data={humidityData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(140, 20%, 88%)" />
                   <XAxis dataKey="time" stroke="hsl(150, 15%, 45%)" fontSize={12} />
-                  <YAxis stroke="hsl(150, 15%, 45%)" fontSize={12} />
-                  <Tooltip />
+                  <YAxis stroke="hsl(150, 15%, 45%)" fontSize={12} unit="%" />
+                  <Tooltip 
+                    formatter={(value: number) => [`${value}%`, 'Humidity']}
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(0, 0%, 100%)', 
+                      border: '1px solid hsl(140, 20%, 88%)',
+                      borderRadius: '8px'
+                    }}
+                  />
                   <Line type="monotone" dataKey="value" stroke="hsl(210, 100%, 50%)" strokeWidth={2} dot={{ fill: 'hsl(210, 100%, 50%)' }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -158,8 +209,15 @@ export default function SensorData() {
                 <BarChart data={lightData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(140, 20%, 88%)" />
                   <XAxis dataKey="time" stroke="hsl(150, 15%, 45%)" fontSize={12} />
-                  <YAxis stroke="hsl(150, 15%, 45%)" fontSize={12} />
-                  <Tooltip />
+                  <YAxis stroke="hsl(150, 15%, 45%)" fontSize={12} unit=" lux" />
+                  <Tooltip 
+                    formatter={(value: number) => [`${value} lux`, 'Light']}
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(0, 0%, 100%)', 
+                      border: '1px solid hsl(140, 20%, 88%)',
+                      borderRadius: '8px'
+                    }}
+                  />
                   <Bar dataKey="value" fill="hsl(45, 93%, 47%)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

@@ -1,10 +1,23 @@
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
-import { Bug, Camera, Shield, AlertTriangle, CheckCircle, Upload, Search, Wifi, RefreshCw, Droplets, Bell, MessageSquare, Leaf, BarChart3, Calendar, TrendingUp, Plus } from "lucide-react";
+import { Bug, Camera, Shield, AlertTriangle, CheckCircle, Upload, Search, Wifi, RefreshCw, Droplets, Bell, MessageSquare, Leaf, BarChart3, Calendar, TrendingUp, Plus, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDiseaseDetection, useESP32Cam, useManualImageUpload } from "@/hooks/useDiseaseDetection";
+import { detectDisease } from "@/services/api";
+
+/**
+ * Disease Detection Page
+ * 
+ * API MAPPINGS:
+ * - Disease Analysis: POST /api/disease/detect → disease_name, confidence, treatment
+ * - ESP32 Capture: GET /api/esp32/capture?ip={ip} → image blob
+ * - ESP32 Test: GET /api/esp32/test?ip={ip} → connection status
+ * 
+ * BACKEND TO CONFIRM: ESP32 CAM endpoints may need adjustment based on implementation
+ */
 
 const recentScans = [
   { id: 1, plant: "Tomato Plant #12", status: "healthy", confidence: 98, date: "Today, 10:30 AM" },
@@ -56,30 +69,68 @@ const analyticsData = {
 
 export default function DiseaseDetection() {
   const [esp32Url, setEsp32Url] = useState("http://192.168.1.100");
-  const [isConnected, setIsConnected] = useState(false);
-  const [snapshotPreview, setSnapshotPreview] = useState<string | null>(null);
-  const [isCapturing, setIsCapturing] = useState(false);
   const [autoIrrigation, setAutoIrrigation] = useState(true);
   const [whatsappAlerts, setWhatsappAlerts] = useState(false);
   const [smsAlerts, setSmsAlerts] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [activeImageSource, setActiveImageSource] = useState<"esp32" | "upload">("esp32");
+  
+  // File input ref for manual upload
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleCaptureSnapshot = async () => {
-    setIsCapturing(true);
-    setTimeout(() => {
-      setSnapshotPreview("/placeholder.svg");
-      setIsConnected(true);
-      setIsCapturing(false);
-    }, 1500);
+  // API hooks
+  const esp32Cam = useESP32Cam();
+  const manualUpload = useManualImageUpload();
+  const diseaseDetection = useDiseaseDetection();
+
+  // Handle ESP32 capture - calls GET /api/esp32/capture
+  const handleCaptureSnapshot = () => {
+    esp32Cam.captureSnapshot(esp32Url);
+    setActiveImageSource("esp32");
   };
 
+  // Handle ESP32 connection test - calls GET /api/esp32/test
   const handleTestConnection = () => {
-    setIsCapturing(true);
-    setTimeout(() => {
-      setIsConnected(true);
-      setIsCapturing(false);
-    }, 1000);
+    esp32Cam.testConnection(esp32Url);
   };
+
+  // Handle manual file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      manualUpload.handleFileSelect(file);
+      setActiveImageSource("upload");
+    }
+  };
+
+  // Trigger file input click
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Analyze current image - calls POST /api/disease/detect
+  const handleAnalyze = async () => {
+    let imageToAnalyze: File | Blob | null = null;
+
+    if (activeImageSource === "upload" && manualUpload.file) {
+      imageToAnalyze = manualUpload.file;
+    } else if (activeImageSource === "esp32" && esp32Cam.snapshot) {
+      // Convert blob URL to blob for analysis
+      const response = await fetch(esp32Cam.snapshot);
+      imageToAnalyze = await response.blob();
+    }
+
+    if (imageToAnalyze) {
+      diseaseDetection.analyze(imageToAnalyze);
+    }
+  };
+
+  // Get current preview image
+  const currentPreview = activeImageSource === "upload" 
+    ? manualUpload.previewUrl 
+    : esp32Cam.snapshot;
+
+  const hasImage = !!currentPreview;
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-background">
@@ -200,55 +251,182 @@ export default function DiseaseDetection() {
           </div>
         )}
 
-        {/* ESP32 CAM Section */}
+        {/* Image Capture Section - ESP32 CAM + Manual Upload */}
         <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Camera className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-foreground">ESP32 CAM Snapshot</h3>
-            <div className={`ml-2 flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isConnected ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-              <Wifi className="w-3 h-3" />
-              {isConnected ? 'Connected' : 'Disconnected'}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Camera className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Image Capture</h3>
             </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="flex-1">
-              <label className="text-sm text-muted-foreground mb-1 block">ESP32 CAM IP Address</label>
-              <Input 
-                value={esp32Url} 
-                onChange={(e) => setEsp32Url(e.target.value)}
-                placeholder="http://192.168.1.100"
-                className="font-mono"
-              />
-            </div>
-            <div className="flex items-end gap-2">
-              <Button variant="outline" onClick={handleTestConnection} disabled={isCapturing}>
-                <Wifi className="w-4 h-4 mr-2" />
-                Test
-              </Button>
-              <Button onClick={handleCaptureSnapshot} disabled={isCapturing}>
-                {isCapturing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Camera className="w-4 h-4 mr-2" />}
-                Capture
-              </Button>
-            </div>
+            {esp32Cam.isConnected && (
+              <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                <Wifi className="w-3 h-3" />
+                ESP32 Connected
+              </div>
+            )}
           </div>
 
+          {/* Tabs for ESP32 vs Manual Upload */}
+          <Tabs defaultValue="esp32" className="mb-4">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="esp32" onClick={() => setActiveImageSource("esp32")}>
+                <Wifi className="w-4 h-4 mr-2" />
+                ESP32 CAM
+              </TabsTrigger>
+              <TabsTrigger value="upload" onClick={() => setActiveImageSource("upload")}>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Image
+              </TabsTrigger>
+            </TabsList>
+
+            {/* ESP32 CAM Tab - GET /api/esp32/capture */}
+            <TabsContent value="esp32" className="mt-4">
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <div className="flex-1">
+                  <label className="text-sm text-muted-foreground mb-1 block">ESP32 CAM IP Address</label>
+                  <Input 
+                    value={esp32Url} 
+                    onChange={(e) => setEsp32Url(e.target.value)}
+                    placeholder="http://192.168.1.100"
+                    className="font-mono"
+                  />
+                </div>
+                <div className="flex items-end gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleTestConnection} 
+                    disabled={esp32Cam.isTestingConnection}
+                  >
+                    {esp32Cam.isTestingConnection ? (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Wifi className="w-4 h-4 mr-2" />
+                    )}
+                    Test
+                  </Button>
+                  <Button 
+                    onClick={handleCaptureSnapshot} 
+                    disabled={esp32Cam.isCapturing}
+                  >
+                    {esp32Cam.isCapturing ? (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Camera className="w-4 h-4 mr-2" />
+                    )}
+                    Capture
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {/* BACKEND TO CONFIRM: ESP32 endpoint format */}
+                Connects to your ESP32-CAM device via local network
+              </p>
+            </TabsContent>
+
+            {/* Manual Upload Tab */}
+            <TabsContent value="upload" className="mt-4">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={handleUploadClick}
+                  className="flex-1 sm:flex-none"
+                >
+                  <Image className="w-4 h-4 mr-2" />
+                  Select Image
+                </Button>
+                {manualUpload.file && (
+                  <p className="text-sm text-muted-foreground self-center">
+                    Selected: {manualUpload.file.name}
+                  </p>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Supported formats: JPG, PNG, WebP (max 10MB)
+              </p>
+            </TabsContent>
+          </Tabs>
+
+          {/* Image Preview & Analysis */}
           <div className="border-2 border-dashed border-border rounded-xl p-4 text-center">
-            {snapshotPreview ? (
+            {currentPreview ? (
               <div className="space-y-4">
                 <div className="relative w-full max-w-md mx-auto aspect-video bg-muted rounded-lg overflow-hidden">
-                  <img src={snapshotPreview} alt="ESP32 CAM Snapshot" className="w-full h-full object-cover" />
+                  <img 
+                    src={currentPreview} 
+                    alt="Captured/Uploaded Image" 
+                    className="w-full h-full object-cover" 
+                  />
                   <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs text-muted-foreground">
-                    Live Preview
+                    {activeImageSource === "esp32" ? "ESP32 Capture" : "Uploaded Image"}
                   </div>
                 </div>
+
+                {/* Disease Detection Result - from POST /api/disease/detect */}
+                {diseaseDetection.result && (
+                  <div className={`p-4 rounded-xl ${
+                    diseaseDetection.result.is_healthy 
+                      ? 'bg-primary/10 border border-primary/20' 
+                      : 'bg-yellow-500/10 border border-yellow-500/20'
+                  }`}>
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      {diseaseDetection.result.is_healthy ? (
+                        <CheckCircle className="w-5 h-5 text-primary" />
+                      ) : (
+                        <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                      )}
+                      <span className="font-semibold text-foreground">
+                        {diseaseDetection.result.disease_name}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        ({diseaseDetection.result.confidence}% confidence)
+                      </span>
+                    </div>
+                    {diseaseDetection.result.treatment && (
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium">Treatment:</span> {diseaseDetection.result.treatment}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Analysis Error */}
+                {diseaseDetection.error && (
+                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-sm text-destructive">
+                    Analysis failed. Please try again or check your connection.
+                  </div>
+                )}
+
                 <div className="flex justify-center gap-3">
-                  <Button onClick={handleCaptureSnapshot} disabled={isCapturing}>
-                    {isCapturing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-                    Recapture
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      if (activeImageSource === "esp32") {
+                        handleCaptureSnapshot();
+                      } else {
+                        handleUploadClick();
+                      }
+                    }} 
+                    disabled={esp32Cam.isCapturing}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    {activeImageSource === "esp32" ? "Recapture" : "Change Image"}
                   </Button>
-                  <Button variant="default">
-                    <Search className="w-4 h-4 mr-2" />
+                  <Button 
+                    onClick={handleAnalyze}
+                    disabled={diseaseDetection.isAnalyzing}
+                  >
+                    {diseaseDetection.isAnalyzing ? (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4 mr-2" />
+                    )}
                     Analyze for Disease
                   </Button>
                 </div>
@@ -258,9 +436,23 @@ export default function DiseaseDetection() {
                 <div className="w-16 h-16 rounded-2xl bg-muted mx-auto mb-4 flex items-center justify-center">
                   <Camera className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <p className="text-foreground font-medium mb-1">Connect to ESP32 CAM</p>
-                <p className="text-sm text-muted-foreground mb-4">Enter your ESP32 CAM IP address and capture a snapshot</p>
-                <p className="text-xs text-muted-foreground">Supported: ESP32-CAM, AI-Thinker CAM</p>
+                <p className="text-foreground font-medium mb-1">Capture or Upload an Image</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Use ESP32 CAM to capture a live snapshot, or upload an image manually
+                </p>
+                <div className="flex justify-center gap-3">
+                  <Button variant="outline" onClick={handleCaptureSnapshot} disabled={esp32Cam.isCapturing}>
+                    <Camera className="w-4 h-4 mr-2" />
+                    Capture from ESP32
+                  </Button>
+                  <Button onClick={handleUploadClick}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Image
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-4">
+                  Supported: ESP32-CAM, AI-Thinker CAM, JPG/PNG uploads
+                </p>
               </div>
             )}
           </div>
