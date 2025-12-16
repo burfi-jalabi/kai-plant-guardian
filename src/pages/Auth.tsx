@@ -42,6 +42,26 @@ const Auth = () => {
     navigate("/dashboard");
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Google sign-in failed",
+        description: error.message || "Could not sign in with Google.",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -375,7 +395,13 @@ const Auth = () => {
 
             {/* Social buttons */}
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="heroOutline" size="lg" className="w-full" disabled={loading}>
+              <Button 
+                variant="heroOutline" 
+                size="lg" 
+                className="w-full" 
+                disabled={loading}
+                onClick={handleGoogleSignIn}
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
