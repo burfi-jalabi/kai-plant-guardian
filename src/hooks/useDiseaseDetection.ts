@@ -45,6 +45,9 @@ export function useESP32Cam() {
     onSuccess: (connected) => {
       setIsConnected(connected);
     },
+    onError: () => {
+      setIsConnected(false);
+    },
   });
 
   const captureSnapshot = useMutation({
@@ -62,7 +65,24 @@ export function useESP32Cam() {
   return {
     isConnected,
     snapshot,
-    testConnection: testConnection.mutate,
+    testConnection: (
+      ipAddress: string, 
+      options?: { 
+        onSuccess?: (connected: boolean) => void; 
+        onError?: (error: Error) => void;
+      }
+    ) => {
+      testConnection.mutate(ipAddress, {
+        onSuccess: (connected) => {
+          setIsConnected(connected);
+          options?.onSuccess?.(connected);
+        },
+        onError: (error) => {
+          setIsConnected(false);
+          options?.onError?.(error as Error);
+        },
+      });
+    },
     isTestingConnection: testConnection.isPending,
     captureSnapshot: captureSnapshot.mutate,
     isCapturing: captureSnapshot.isPending,

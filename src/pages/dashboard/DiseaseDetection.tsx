@@ -1,5 +1,5 @@
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
-import { Bug, Camera, Shield, AlertTriangle, CheckCircle, Upload, Search, Wifi, RefreshCw, Droplets, Bell, MessageSquare, Leaf, BarChart3, Calendar, TrendingUp, Plus, Image } from "lucide-react";
+import { Bug, Camera, Shield, AlertTriangle, CheckCircle, Upload, Search, Wifi, RefreshCw, Droplets, Bell, MessageSquare, Leaf, BarChart3, Calendar, TrendingUp, Plus, Image, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useRef } from "react";
@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDiseaseDetection, useESP32Cam, useManualImageUpload } from "@/hooks/useDiseaseDetection";
 import { detectDisease } from "@/services/api";
+import { toast } from "sonner";
 
 /**
  * Disease Detection Page
@@ -90,8 +91,29 @@ export default function DiseaseDetection() {
   };
 
   // Handle ESP32 connection test - calls GET /api/esp32/test
-  const handleTestConnection = () => {
-    esp32Cam.testConnection(esp32Url);
+  const handleTestConnection = async () => {
+    toast.loading("Testing ESP32 connection...", { id: "esp32-test" });
+    esp32Cam.testConnection(esp32Url, {
+      onSuccess: (connected) => {
+        if (connected) {
+          toast.success("ESP32 CAM connected successfully!", { 
+            id: "esp32-test",
+            description: `Device found at ${esp32Url}`
+          });
+        } else {
+          toast.error("ESP32 CAM not reachable", { 
+            id: "esp32-test",
+            description: "Check the IP address and ensure the device is powered on"
+          });
+        }
+      },
+      onError: () => {
+        toast.error("Connection test failed", { 
+          id: "esp32-test",
+          description: "Network error - check your connection"
+        });
+      }
+    });
   };
 
   // Handle manual file selection
