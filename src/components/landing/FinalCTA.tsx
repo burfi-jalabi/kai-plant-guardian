@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Leaf, Shield, Zap } from "lucide-react";
-
+import { Link } from "react-router-dom";
 const FinalCTA = () => {
   return (
     <section className="py-24 lg:py-32 bg-card relative overflow-hidden">
@@ -55,10 +55,13 @@ const FinalCTA = () => {
               <Button
                 variant="gold"
                 size="xl"
-                className="text-base sm:text-lg w-full sm:w-auto"
+                className="text-base sm:text-lg w-full max-w-xs sm:max-w-none sm:w-auto mx-auto"
+                asChild
               >
-                Login to Continue
-                <ArrowRight className="w-5 h-5" />
+                <Link to="/auth">
+                  Login to Continue
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
               </Button>
             </div>
           </div>
