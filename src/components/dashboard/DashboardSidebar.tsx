@@ -41,8 +41,8 @@ export function DashboardSidebar() {
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar className="border-r border-border bg-card">
-      <SidebarHeader className="p-4 border-b border-border">
+    <Sidebar className="border-r border-sidebar-border bg-sidebar">
+      <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
@@ -50,8 +50,8 @@ export function DashboardSidebar() {
             </div>
             {!isCollapsed && (
               <div>
-                <h1 className="font-display text-lg font-bold text-foreground">GrowSense AI</h1>
-                <p className="text-xs text-muted-foreground">Dashboard</p>
+                <h1 className="font-display text-lg font-bold text-sidebar-foreground">GrowSense AI</h1>
+                <p className="text-xs text-sidebar-foreground/70">Dashboard</p>
               </div>
             )}
           </Link>
@@ -79,8 +79,8 @@ export function DashboardSidebar() {
                     <NavLink 
                       to={item.url} 
                       end={item.url === "/dashboard"}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      activeClassName="bg-primary/10 text-primary font-medium"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                     >
                       <item.icon className="w-5 h-5 shrink-0" />
                       {!isCollapsed && <span>{item.title}</span>}
@@ -103,8 +103,8 @@ export function DashboardSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink 
                       to={item.url}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      activeClassName="bg-primary/10 text-primary font-medium"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                     >
                       <item.icon className="w-5 h-5 shrink-0" />
                       {!isCollapsed && <span>{item.title}</span>}
@@ -117,10 +117,10 @@ export function DashboardSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-border">
+      <SidebarFooter className="p-4 border-t border-sidebar-border">
         <Link 
           to="/"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
         >
           <LogOut className="w-5 h-5 shrink-0" />
           {!isCollapsed && <span>Logout</span>}
