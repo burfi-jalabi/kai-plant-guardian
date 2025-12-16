@@ -2,6 +2,7 @@ import { Bell, Search, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSidebar } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface DashboardTopbarProps {
   title: string;
@@ -33,6 +34,9 @@ export function DashboardTopbar({ title }: DashboardTopbarProps) {
               className="pl-10 w-64 bg-muted/50 border-border/50"
             />
           </div>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative">
