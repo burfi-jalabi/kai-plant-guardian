@@ -1,11 +1,35 @@
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
-import { User, Bell, Shield, Palette, Wifi, HelpCircle } from "lucide-react";
+import { User, Bell, Shield, Palette, Wifi, HelpCircle, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useState, useRef } from "react";
+import { toast } from "sonner";
 
 export default function Settings() {
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File too large", { description: "Please select an image under 5MB" });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+        toast.success("Avatar updated", { description: "Your new avatar has been set" });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-background">
       <DashboardTopbar title="Settings" />
@@ -25,11 +49,29 @@ export default function Settings() {
             </div>
             
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-primary flex items-center justify-center">
-                <User className="w-10 h-10 text-primary-foreground" />
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleAvatarChange}
+                accept="image/*"
+                className="hidden"
+              />
+              <div 
+                className="w-20 h-20 rounded-2xl bg-gradient-primary flex items-center justify-center cursor-pointer overflow-hidden group relative"
+                onClick={handleAvatarClick}
+              >
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-10 h-10 text-primary-foreground" />
+                )}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-white" />
+                </div>
               </div>
               <div>
-                <Button variant="outline" size="sm">Change Avatar</Button>
+                <Button variant="outline" size="sm" onClick={handleAvatarClick}>Change Avatar</Button>
+                <p className="text-xs text-muted-foreground mt-1">Click to upload (max 5MB)</p>
               </div>
             </div>
 

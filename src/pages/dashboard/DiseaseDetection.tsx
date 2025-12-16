@@ -1,5 +1,5 @@
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
-import { Bug, Camera, Shield, AlertTriangle, CheckCircle, Upload, Search, Wifi, RefreshCw, Droplets, Bell, MessageSquare, Leaf, BarChart3, Calendar, TrendingUp, Plus, Image, XCircle } from "lucide-react";
+import { Bug, Camera, Shield, AlertTriangle, CheckCircle, Upload, Search, Wifi, RefreshCw, Droplets, Bell, MessageSquare, Leaf, BarChart3, Calendar, TrendingUp, Plus, Image, XCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useRef } from "react";
@@ -8,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDiseaseDetection, useESP32Cam, useManualImageUpload } from "@/hooks/useDiseaseDetection";
 import { detectDisease } from "@/services/api";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 /**
  * Disease Detection Page
@@ -74,6 +77,9 @@ export default function DiseaseDetection() {
   const [whatsappAlerts, setWhatsappAlerts] = useState(false);
   const [smsAlerts, setSmsAlerts] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [isAddPlantOpen, setIsAddPlantOpen] = useState(false);
+  const [newPlantName, setNewPlantName] = useState("");
+  const [newPlantZone, setNewPlantZone] = useState("");
   const [activeImageSource, setActiveImageSource] = useState<"esp32" | "upload">("esp32");
   
   // File input ref for manual upload
@@ -153,6 +159,17 @@ export default function DiseaseDetection() {
     : esp32Cam.snapshot;
 
   const hasImage = !!currentPreview;
+
+  const handleAddPlant = () => {
+    if (!newPlantName.trim() || !newPlantZone) {
+      toast.error("Please fill all fields");
+      return;
+    }
+    toast.success("Plant added", { description: `${newPlantName} added to ${newPlantZone}` });
+    setNewPlantName("");
+    setNewPlantZone("");
+    setIsAddPlantOpen(false);
+  };
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-background">
@@ -467,13 +484,9 @@ export default function DiseaseDetection() {
                     <Camera className="w-4 h-4 mr-2" />
                     Capture from ESP32
                   </Button>
-                  <Button onClick={handleUploadClick}>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload Image
-                  </Button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-4">
-                  Supported: ESP32-CAM, AI-Thinker CAM, JPG/PNG uploads
+                  Use tabs above for ESP32 capture or image upload
                 </p>
               </div>
             )}
@@ -488,7 +501,7 @@ export default function DiseaseDetection() {
               <h3 className="font-semibold text-foreground">Multi-Plant Monitoring</h3>
               <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{plants.length} plants</span>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setIsAddPlantOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add Plant
             </Button>
@@ -691,6 +704,43 @@ export default function DiseaseDetection() {
           </div>
         </div>
       </main>
+
+      {/* Add Plant Dialog */}
+      <Dialog open={isAddPlantOpen} onOpenChange={setIsAddPlantOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Plant</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="plantName">Plant Name</Label>
+              <Input 
+                id="plantName" 
+                value={newPlantName} 
+                onChange={(e) => setNewPlantName(e.target.value)} 
+                placeholder="e.g., Tomato Plant #13"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="plantZone">Zone</Label>
+              <Select value={newPlantZone} onValueChange={setNewPlantZone}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select zone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Zone A">Zone A</SelectItem>
+                  <SelectItem value="Zone B">Zone B</SelectItem>
+                  <SelectItem value="Zone C">Zone C</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddPlantOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddPlant}>Add Plant</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
