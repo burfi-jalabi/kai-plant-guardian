@@ -55,7 +55,7 @@ const FinalCTA = () => {
               <Button
                 variant="gold"
                 size="xl"
-                className="text-lg"
+                className="text-base sm:text-lg w-full sm:w-auto"
               >
                 Login to Continue
                 <ArrowRight className="w-5 h-5" />
