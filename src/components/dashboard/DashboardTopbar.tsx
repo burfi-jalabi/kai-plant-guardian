@@ -24,16 +24,21 @@ export function DashboardTopbar({ title }: DashboardTopbarProps) {
   const { toast } = useToast();
 
   const handleLogout = async () => {
-    // Sign out from Supabase (if logged in)
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
     
-    toast({
-      title: "Signed out",
-      description: "You have been successfully signed out.",
-    });
-    
-    // Always redirect to auth page (works for both real users and demo mode)
-    navigate("/auth");
+    if (error) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+      navigate("/auth");
+    }
   };
 
   return (
