@@ -1,4 +1,4 @@
-import { Sprout } from "lucide-react";
+import { Sprout, Instagram } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -48,6 +48,15 @@ const Footer = () => {
               className="text-background/60 hover:text-background text-sm transition-colors"
             >
               How It Works
+            </a>
+            <a
+              href="https://www.instagram.com/iguana.4731899/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-background/60 hover:text-background text-sm transition-colors flex items-center gap-1"
+            >
+              <Instagram className="w-4 h-4" />
+              Follow us
             </a>
           </div>
 
