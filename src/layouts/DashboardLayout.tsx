@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { Loader2 } from "lucide-react";
+import { PlantProvider } from "@/contexts/PlantContext";
 
 export default function DashboardLayout() {
   const [session, setSession] = useState<Session | null>(null);
@@ -47,11 +48,15 @@ export default function DashboardLayout() {
   // In production, you'd want to enforce auth here
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <DashboardSidebar />
-        <Outlet />
-      </div>
-    </SidebarProvider>
+    <PlantProvider>
+      <SidebarProvider defaultOpen={true}>
+        <div className="min-h-screen flex w-full bg-background">
+          <DashboardSidebar />
+          <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <Outlet />
+          </main>
+        </div>
+      </SidebarProvider>
+    </PlantProvider>
   );
 }
