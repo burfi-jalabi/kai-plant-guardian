@@ -6,7 +6,10 @@ import {
   Settings, 
   Sprout,
   LogOut,
-  ChevronLeft
+  ChevronLeft,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeft
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
@@ -24,6 +27,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const mainNavItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -37,53 +42,110 @@ const settingsItems = [
 ];
 
 export function DashboardSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, isMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar className="border-r border-sidebar-border bg-sidebar">
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
+    <Sidebar 
+      className={cn(
+        "border-r border-sidebar-border bg-sidebar transition-all duration-300 ease-out",
+        "flex flex-col h-screen sticky top-0"
+      )}
+      collapsible="icon"
+    >
+      <SidebarHeader className="p-4 border-b border-sidebar-border flex-shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <Link to="/dashboard" className="flex items-center gap-3 min-w-0">
+            <motion.div 
+              className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow flex-shrink-0"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               <Sprout className="w-5 h-5 text-primary-foreground" />
-            </div>
-            {!isCollapsed && (
-              <div>
-                <h1 className="font-display text-lg font-bold text-sidebar-foreground">GrowSense AI</h1>
-                <p className="text-xs text-sidebar-foreground/70">Dashboard</p>
-              </div>
-            )}
+            </motion.div>
+            <AnimatePresence mode="wait">
+              {!isCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <h1 className="font-display text-lg font-bold text-sidebar-foreground whitespace-nowrap">
+                    GrowSense AI
+                  </h1>
+                  <p className="text-xs text-sidebar-foreground/70 whitespace-nowrap">Dashboard</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Link>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleSidebar}
-            className="h-8 w-8"
-          >
-            <ChevronLeft className={`w-4 h-4 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
-          </Button>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="p-2">
+      {/* Toggle button - always visible */}
+      <div className={cn(
+        "absolute z-50 transition-all duration-300",
+        isCollapsed ? "top-4 -right-3" : "top-4 right-3"
+      )}>
+        <Button 
+          variant="outline"
+          size="icon"
+          onClick={toggleSidebar}
+          className={cn(
+            "h-6 w-6 rounded-full shadow-soft bg-background border-border hover:bg-muted",
+            "transition-transform duration-200 hover:scale-110"
+          )}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-3 h-3" />
+          ) : (
+            <ChevronLeft className="w-3 h-3" />
+          )}
+        </Button>
+      </div>
+
+      <SidebarContent className="p-2 flex-1 overflow-y-auto overflow-x-hidden">
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
+          <SidebarGroupLabel className={cn(
+            "transition-opacity duration-200",
+            isCollapsed ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
+          )}>
             Main Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip={isCollapsed ? item.title : undefined}>
                     <NavLink 
                       to={item.url} 
                       end={item.url === "/dashboard"}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-xl",
+                        "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                        "transition-all duration-200 group"
+                      )}
+                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium shadow-sm"
                     >
-                      <item.icon className="w-5 h-5 shrink-0" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <item.icon className="w-5 h-5 shrink-0" />
+                      </motion.div>
+                      <AnimatePresence mode="wait">
+                        {!isCollapsed && (
+                          <motion.span
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            {item.title}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -93,21 +155,39 @@ export function DashboardSidebar() {
         </SidebarGroup>
 
         <SidebarGroup className="mt-auto">
-          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
+          <SidebarGroupLabel className={cn(
+            "transition-opacity duration-200",
+            isCollapsed ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
+          )}>
             System
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip={isCollapsed ? item.title : undefined}>
                     <NavLink 
                       to={item.url}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-xl",
+                        "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                        "transition-all duration-200"
+                      )}
                       activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                     >
                       <item.icon className="w-5 h-5 shrink-0" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      <AnimatePresence mode="wait">
+                        {!isCollapsed && (
+                          <motion.span
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            {item.title}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -117,13 +197,28 @@ export function DashboardSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-sidebar-border">
+      <SidebarFooter className="p-4 border-t border-sidebar-border flex-shrink-0">
         <Link 
           to="/"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl",
+            "text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive",
+            "transition-all duration-200"
+          )}
         >
           <LogOut className="w-5 h-5 shrink-0" />
-          {!isCollapsed && <span>Logout</span>}
+          <AnimatePresence mode="wait">
+            {!isCollapsed && (
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.15 }}
+              >
+                Logout
+              </motion.span>
+            )}
+          </AnimatePresence>
         </Link>
       </SidebarFooter>
     </Sidebar>
