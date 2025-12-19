@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, ChevronDown, Leaf, AlertTriangle, AlertCircle, Check } from "lucide-react";
+import { Search, ChevronDown, Leaf, AlertTriangle, AlertCircle, Check, X } from "lucide-react";
 import { usePlant, Plant } from "@/contexts/PlantContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -45,6 +46,11 @@ export function PlantSelector() {
 
   const handleSelectPlant = (plant: Plant) => {
     setActivePlant(plant);
+    setOpen(false);
+  };
+
+  const handleClearSelection = () => {
+    setActivePlant(null);
     setOpen(false);
   };
 
@@ -100,6 +106,28 @@ export function PlantSelector() {
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
               No plants found.
             </CommandEmpty>
+            
+            {/* Clear Selection Option */}
+            {activePlant && (
+              <>
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={handleClearSelection}
+                    className="flex items-center gap-3 px-3 py-3 cursor-pointer rounded-lg text-muted-foreground"
+                  >
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-muted">
+                      <X className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground">Clear Selection</p>
+                      <p className="text-xs text-muted-foreground">Return to empty dashboard</p>
+                    </div>
+                  </CommandItem>
+                </CommandGroup>
+                <CommandSeparator />
+              </>
+            )}
+            
             <CommandGroup heading="Your Plants">
               {plants.map((plant) => {
                 const config = statusConfig[plant.status];
