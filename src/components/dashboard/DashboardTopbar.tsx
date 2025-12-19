@@ -1,6 +1,5 @@
-import { Bell, Search, User, Menu, LogOut } from "lucide-react";
+import { User, Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useSidebar } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
@@ -13,6 +12,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { AlertsDropdown } from "./AlertsDropdown";
+import { QuickStatusPanel } from "./QuickStatusPanel";
+import { HelpGuide } from "./HelpGuide";
 
 interface DashboardTopbarProps {
   title: string;
@@ -55,24 +57,20 @@ export function DashboardTopbar({ title }: DashboardTopbarProps) {
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Search - hidden on mobile */}
-          <div className="hidden md:flex relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search..." 
-              className="pl-10 w-64 bg-muted/50 border-border/50"
-            />
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Quick Status - hidden on small mobile */}
+          <div className="hidden sm:block">
+            <QuickStatusPanel />
           </div>
+
+          {/* Help Guide */}
+          <HelpGuide />
 
           {/* Theme Toggle */}
           <ThemeToggle />
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
-          </Button>
+          {/* Alerts */}
+          <AlertsDropdown />
 
           {/* User dropdown */}
           <DropdownMenu>

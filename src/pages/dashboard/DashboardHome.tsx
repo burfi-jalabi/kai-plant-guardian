@@ -2,6 +2,7 @@ import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
 import { MetricCard, HeroMetricCard } from "@/components/dashboard/MetricCard";
 import { PlantSelector } from "@/components/dashboard/PlantSelector";
 import { EmptyDashboardState } from "@/components/dashboard/EmptyDashboardState";
+import { ActiveIssues } from "@/components/dashboard/ActiveIssues";
 import { usePlant } from "@/contexts/PlantContext";
 import { Droplets, Thermometer, Sun, Wind, Activity, Leaf, AlertTriangle, TrendingUp } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ComposedChart, Area } from "recharts";
@@ -361,38 +362,8 @@ export default function DashboardHome() {
                   </div>
                 </motion.div>
 
-                {/* Quick Stats */}
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-card rounded-2xl p-4 lg:p-6 shadow-soft border border-border/50"
-                >
-                  <h3 className="font-semibold text-foreground mb-4">
-                    {statsLoading ? "Loading Stats..." : "Quick Stats"}
-                  </h3>
-                  <div className="space-y-4">
-                    {[
-                      { label: "Active Sensors", value: quickStats?.active_sensors ?? 12, color: "text-foreground" },
-                      { label: "Plants Monitored", value: quickStats?.plants_monitored ?? 48, color: "text-foreground" },
-                      { label: "Avg Soil Moisture", value: `${quickStats?.avg_soil_moisture ?? 58}%`, color: "text-blue-500" },
-                      { label: "Water Saved", value: `${quickStats?.water_saved_liters ?? 234}L`, color: "text-primary" },
-                    ].map((stat, index) => (
-                      <motion.div 
-                        key={stat.label}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.1 * index }}
-                        className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
-                      >
-                        <span className="text-sm text-muted-foreground">{stat.label}</span>
-                        <span className={cn("font-semibold", stat.color)}>
-                          {statsLoading ? "..." : stat.value}
-                        </span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
+                {/* Active Issues */}
+                <ActiveIssues />
               </div>
             </motion.div>
           )}
