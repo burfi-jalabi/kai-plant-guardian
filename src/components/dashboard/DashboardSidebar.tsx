@@ -8,8 +8,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  PanelLeftClose,
-  PanelLeft
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
@@ -29,21 +27,23 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-
-const mainNavItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Sensor Data", url: "/dashboard/sensors", icon: Activity },
-  { title: "Water Prediction", url: "/dashboard/water", icon: Droplets },
-  { title: "Disease Detection", url: "/dashboard/disease", icon: Bug },
-];
-
-const settingsItems = [
-  { title: "Settings", url: "/dashboard/settings", icon: Settings },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function DashboardSidebar() {
-  const { state, toggleSidebar, isMobile } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
+  const { t } = useLanguage();
   const isCollapsed = state === "collapsed";
+
+  const mainNavItems = [
+    { title: t('sidebar.dashboard'), url: "/dashboard", icon: LayoutDashboard },
+    { title: t('sidebar.sensorData'), url: "/dashboard/sensors", icon: Activity },
+    { title: t('sidebar.waterPrediction'), url: "/dashboard/water", icon: Droplets },
+    { title: t('sidebar.diseaseDetection'), url: "/dashboard/disease", icon: Bug },
+  ];
+
+  const settingsItems = [
+    { title: t('sidebar.settings'), url: "/dashboard/settings", icon: Settings },
+  ];
 
   return (
     <Sidebar 
@@ -75,7 +75,7 @@ export function DashboardSidebar() {
                   <h1 className="font-display text-lg font-bold text-sidebar-foreground whitespace-nowrap">
                     GrowSense AI
                   </h1>
-                  <p className="text-xs text-sidebar-foreground/70 whitespace-nowrap">Dashboard</p>
+                  <p className="text-xs text-sidebar-foreground/70 whitespace-nowrap">{t('sidebar.dashboard')}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -111,12 +111,12 @@ export function DashboardSidebar() {
             "transition-opacity duration-200",
             isCollapsed ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
           )}>
-            Main Menu
+            {t('sidebar.mainMenu')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild tooltip={isCollapsed ? item.title : undefined}>
                     <NavLink 
                       to={item.url} 
@@ -159,12 +159,12 @@ export function DashboardSidebar() {
             "transition-opacity duration-200",
             isCollapsed ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
           )}>
-            System
+            {t('sidebar.system')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {settingsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild tooltip={isCollapsed ? item.title : undefined}>
                     <NavLink 
                       to={item.url}
@@ -215,7 +215,7 @@ export function DashboardSidebar() {
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.15 }}
               >
-                Logout
+                {t('dashboard.logout')}
               </motion.span>
             )}
           </AnimatePresence>
