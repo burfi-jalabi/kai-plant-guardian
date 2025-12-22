@@ -76,9 +76,11 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           display_name: string | null
           id: string
+          location: string | null
           phone_number: string | null
           sms_alerts: boolean | null
           updated_at: string
@@ -86,9 +88,11 @@ export type Database = {
           whatsapp_alerts: boolean | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          location?: string | null
           phone_number?: string | null
           sms_alerts?: boolean | null
           updated_at?: string
@@ -96,9 +100,11 @@ export type Database = {
           whatsapp_alerts?: boolean | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          location?: string | null
           phone_number?: string | null
           sms_alerts?: boolean | null
           updated_at?: string
