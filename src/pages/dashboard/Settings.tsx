@@ -1,13 +1,23 @@
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
-import { User, Bell, Shield, Palette, Wifi, HelpCircle, Camera } from "lucide-react";
+import { User, Bell, Shield, Wifi, HelpCircle, Camera, Globe, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
+import { useLanguage, Language } from "@/contexts/LanguageContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+const languages: { code: Language; name: string; nativeName: string; flag: string }[] = [
+  { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧' },
+  { code: 'hi', name: 'Hindi', nativeName: 'हिंदी', flag: '🇮🇳' },
+  { code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી', flag: '🇮🇳' },
+];
 
 export default function Settings() {
+  const { language, setLanguage, t } = useLanguage();
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,21 +40,87 @@ export default function Settings() {
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
   };
+
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    toast.success(t('settings.language'), { 
+      description: languages.find(l => l.code === lang)?.nativeName 
+    });
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-background">
-      <DashboardTopbar title="Settings" />
+      <DashboardTopbar title={t('settings.title')} />
       
       <main className="flex-1 p-4 lg:p-6 overflow-auto">
         <div className="max-w-3xl mx-auto space-y-6">
+          {/* Language Section - Prominent placement */}
+          <motion.div 
+            className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Globe className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">{t('settings.language')}</h3>
+                <p className="text-sm text-muted-foreground">{t('settings.languageDesc')}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <AnimatePresence mode="wait">
+                {languages.map((lang) => (
+                  <motion.button
+                    key={lang.code}
+                    onClick={() => handleLanguageChange(lang.code)}
+                    className={cn(
+                      "relative flex items-center gap-3 p-4 rounded-xl border-2 transition-all duration-200",
+                      language === lang.code
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border hover:border-primary/50 hover:bg-muted/50"
+                    )}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    layout
+                  >
+                    <span className="text-2xl">{lang.flag}</span>
+                    <div className="text-left flex-1">
+                      <p className="font-medium text-foreground">{lang.nativeName}</p>
+                      <p className="text-xs text-muted-foreground">{lang.name}</p>
+                    </div>
+                    {language === lang.code && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="w-5 h-5 rounded-full bg-primary flex items-center justify-center"
+                      >
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      </motion.div>
+                    )}
+                  </motion.button>
+                ))}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+
           {/* Profile Section */}
-          <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+          <motion.div 
+            className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <User className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Profile Settings</h3>
-                <p className="text-sm text-muted-foreground">Manage your account information</p>
+                <h3 className="font-semibold text-foreground">{t('settings.profile')}</h3>
+                <p className="text-sm text-muted-foreground">{t('settings.profileDesc')}</p>
               </div>
             </div>
             
@@ -70,88 +146,100 @@ export default function Settings() {
                 </div>
               </div>
               <div>
-                <Button variant="outline" size="sm" onClick={handleAvatarClick}>Change Avatar</Button>
-                <p className="text-xs text-muted-foreground mt-1">Click to upload (max 5MB)</p>
+                <Button variant="outline" size="sm" onClick={handleAvatarClick}>
+                  {t('settings.changeAvatar')}
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">{t('settings.avatarHint')}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">{t('settings.fullName')}</Label>
                 <Input id="name" defaultValue="Demo User" className="bg-muted/50" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('settings.email')}</Label>
                 <Input id="email" defaultValue="demo@growsense.ai" className="bg-muted/50" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{t('settings.phone')}</Label>
                 <Input id="phone" placeholder="+1 (555) 000-0000" className="bg-muted/50" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">{t('settings.location')}</Label>
                 <Input id="location" placeholder="City, Country" className="bg-muted/50" />
               </div>
             </div>
 
             <div className="mt-6">
-              <Button variant="default">Save Changes</Button>
+              <Button variant="default">{t('settings.saveChanges')}</Button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Notifications */}
-          <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+          <motion.div 
+            className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
                 <Bell className="w-5 h-5 text-blue-500" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Notifications</h3>
-                <p className="text-sm text-muted-foreground">Configure alert preferences</p>
+                <h3 className="font-semibold text-foreground">{t('settings.notifications')}</h3>
+                <p className="text-sm text-muted-foreground">{t('settings.notificationsDesc')}</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
                 <div>
-                  <p className="font-medium text-foreground">Watering Alerts</p>
-                  <p className="text-sm text-muted-foreground">Get notified when plants need water</p>
+                  <p className="font-medium text-foreground">{t('settings.wateringAlerts')}</p>
+                  <p className="text-sm text-muted-foreground">{t('settings.wateringAlertsDesc')}</p>
                 </div>
                 <Switch defaultChecked />
               </div>
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
                 <div>
-                  <p className="font-medium text-foreground">Disease Alerts</p>
-                  <p className="text-sm text-muted-foreground">Notifications for detected diseases</p>
+                  <p className="font-medium text-foreground">{t('settings.diseaseAlerts')}</p>
+                  <p className="text-sm text-muted-foreground">{t('settings.diseaseAlertsDesc')}</p>
                 </div>
                 <Switch defaultChecked />
               </div>
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
                 <div>
-                  <p className="font-medium text-foreground">Weekly Reports</p>
-                  <p className="text-sm text-muted-foreground">Summary of plant health and activity</p>
+                  <p className="font-medium text-foreground">{t('settings.weeklyReports')}</p>
+                  <p className="text-sm text-muted-foreground">{t('settings.weeklyReportsDesc')}</p>
                 </div>
                 <Switch defaultChecked />
               </div>
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
                 <div>
-                  <p className="font-medium text-foreground">Sensor Warnings</p>
-                  <p className="text-sm text-muted-foreground">Low battery and connectivity issues</p>
+                  <p className="font-medium text-foreground">{t('settings.sensorWarnings')}</p>
+                  <p className="text-sm text-muted-foreground">{t('settings.sensorWarningsDesc')}</p>
                 </div>
                 <Switch />
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Connected Devices */}
-          <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+          <motion.div 
+            className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+          >
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
                 <Wifi className="w-5 h-5 text-teal-500" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Connected Devices</h3>
-                <p className="text-sm text-muted-foreground">Manage your sensors and devices</p>
+                <h3 className="font-semibold text-foreground">{t('settings.connectedDevices')}</h3>
+                <p className="text-sm text-muted-foreground">{t('settings.connectedDevicesDesc')}</p>
               </div>
             </div>
 
@@ -161,78 +249,88 @@ export default function Settings() {
                   <div className="w-2 h-2 rounded-full bg-primary" />
                   <div>
                     <p className="font-medium text-foreground">Greenhouse Hub</p>
-                    <p className="text-sm text-muted-foreground">Connected • 4 sensors</p>
+                    <p className="text-sm text-muted-foreground">{t('settings.connected')} • 4 {t('settings.sensors')}</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm">Configure</Button>
+                <Button variant="ghost" size="sm">{t('settings.configure')}</Button>
               </div>
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-primary" />
                   <div>
                     <p className="font-medium text-foreground">Garden Monitor</p>
-                    <p className="text-sm text-muted-foreground">Connected • 3 sensors</p>
+                    <p className="text-sm text-muted-foreground">{t('settings.connected')} • 3 {t('settings.sensors')}</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm">Configure</Button>
+                <Button variant="ghost" size="sm">{t('settings.configure')}</Button>
               </div>
             </div>
 
             <Button variant="outline">
               <Wifi className="w-4 h-4 mr-2" />
-              Add New Device
+              {t('settings.addNewDevice')}
             </Button>
-          </div>
+          </motion.div>
 
           {/* Security */}
-          <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+          <motion.div 
+            className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
+          >
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
                 <Shield className="w-5 h-5 text-destructive" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Security</h3>
-                <p className="text-sm text-muted-foreground">Password and security options</p>
+                <h3 className="font-semibold text-foreground">{t('settings.security')}</h3>
+                <p className="text-sm text-muted-foreground">{t('settings.securityDesc')}</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <Button variant="outline" className="w-full justify-start">
-                Change Password
+                {t('settings.changePassword')}
               </Button>
               <Button variant="outline" className="w-full justify-start">
-                Enable Two-Factor Authentication
+                {t('settings.enable2FA')}
               </Button>
               <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">
-                Delete Account
+                {t('settings.deleteAccount')}
               </Button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Help */}
-          <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+          <motion.div 
+            className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.5 }}
+          >
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
                 <HelpCircle className="w-5 h-5 text-purple-500" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Help & Support</h3>
-                <p className="text-sm text-muted-foreground">Get help and learn more</p>
+                <h3 className="font-semibold text-foreground">{t('settings.helpSupport')}</h3>
+                <p className="text-sm text-muted-foreground">{t('settings.helpSupportDesc')}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Button variant="outline" className="justify-start">
-                Documentation
+                {t('settings.documentation')}
               </Button>
               <Button variant="outline" className="justify-start">
-                Contact Support
+                {t('settings.contactSupport')}
               </Button>
               <Button variant="outline" className="justify-start">
-                FAQs
+                {t('settings.faqs')}
               </Button>
             </div>
-          </div>
+          </motion.div>
         </div>
       </main>
     </div>
