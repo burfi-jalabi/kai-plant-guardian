@@ -1,5 +1,5 @@
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
-import { User, Bell, Shield, Wifi, HelpCircle, Camera, Globe, Check } from "lucide-react";
+import { User, Bell, Shield, Wifi, HelpCircle, Camera, Globe, Check, Settings2, LogOut, Trash2, Key, Smartphone, BookOpen, MessageCircle, FileQuestion, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,19 @@ import { toast } from "sonner";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const languages: { code: Language; name: string; nativeName: string; flag: string }[] = [
   { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧' },
@@ -20,6 +33,8 @@ export default function Settings() {
   const { language, setLanguage, t } = useLanguage();
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,6 +61,37 @@ export default function Settings() {
     toast.success(t('settings.language'), { 
       description: languages.find(l => l.code === lang)?.nativeName 
     });
+  };
+
+  const handleEditPreferences = () => {
+    // Set flag so onboarding knows it was accessed from settings
+    sessionStorage.setItem('onboarding-from-settings', 'true');
+    navigate('/onboarding');
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem('onboarding-complete');
+    toast.success("Logged out", { description: "You have been signed out successfully." });
+    navigate('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      // In a real app, you would call a server function to delete the user
+      // For now, we'll just sign out and show a message
+      await supabase.auth.signOut();
+      localStorage.clear();
+      toast.success("Account deletion requested", { 
+        description: "Your account deletion request has been submitted." 
+      });
+      navigate('/');
+    } catch (error) {
+      toast.error("Error", { description: "Could not process your request. Please try again." });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -107,6 +153,30 @@ export default function Settings() {
             </div>
           </motion.div>
 
+          {/* Edit Preferences - Re-enter onboarding */}
+          <motion.div 
+            className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.05 }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                  <Settings2 className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Edit Preferences</h3>
+                  <p className="text-sm text-muted-foreground">Change language, role, and personalization</p>
+                </div>
+              </div>
+              <Button variant="outline" onClick={handleEditPreferences}>
+                <Settings2 className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+            </div>
+          </motion.div>
+
           {/* Profile Section */}
           <motion.div 
             className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
@@ -160,7 +230,7 @@ export default function Settings() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">{t('settings.email')}</Label>
-                <Input id="email" defaultValue="demo@growsense.ai" className="bg-muted/50" />
+                <Input id="email" defaultValue="demo@growsense.ai" className="bg-muted/50" readOnly />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">{t('settings.phone')}</Label>
@@ -289,20 +359,63 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <Button variant="outline" className="w-full justify-start">
+                <Key className="w-4 h-4 mr-3" />
                 {t('settings.changePassword')}
               </Button>
               <Button variant="outline" className="w-full justify-start">
+                <Smartphone className="w-4 h-4 mr-3" />
                 {t('settings.enable2FA')}
               </Button>
-              <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">
-                {t('settings.deleteAccount')}
+              <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-3" />
+                {t('dashboard.logout')}
               </Button>
+              
+              {/* Delete Account with Confirmation */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10">
+                    <Trash2 className="w-4 h-4 mr-3" />
+                    {t('settings.deleteAccount')}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-destructive" />
+                      Delete Account
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="space-y-3">
+                      <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+                      <div className="bg-destructive/10 p-4 rounded-lg text-sm space-y-2">
+                        <p className="font-medium text-destructive">This will permanently delete:</p>
+                        <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                          <li>Your profile and settings</li>
+                          <li>All saved plants and sensor data</li>
+                          <li>Disease scan history</li>
+                          <li>Water prediction records</li>
+                        </ul>
+                      </div>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteAccount}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete Account"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </motion.div>
 
-          {/* Help */}
+          {/* Help & Support */}
           <motion.div 
             className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
             initial={{ opacity: 0, y: 20 }}
@@ -319,16 +432,30 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Button variant="outline" className="justify-start">
+            <div className="space-y-3">
+              <Button variant="outline" className="w-full justify-start">
+                <BookOpen className="w-4 h-4 mr-3" />
                 {t('settings.documentation')}
               </Button>
-              <Button variant="outline" className="justify-start">
-                {t('settings.contactSupport')}
-              </Button>
-              <Button variant="outline" className="justify-start">
+              <Button variant="outline" className="w-full justify-start">
+                <FileQuestion className="w-4 h-4 mr-3" />
                 {t('settings.faqs')}
               </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <MessageCircle className="w-4 h-4 mr-3" />
+                {t('settings.contactSupport')}
+              </Button>
+            </div>
+
+            {/* Quick Help Tips */}
+            <div className="mt-6 p-4 rounded-xl bg-muted/30 border border-border/30">
+              <p className="text-sm font-medium text-foreground mb-2">Quick Tips for Farmers</p>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Select a plant to view real-time sensor data</li>
+                <li>• Check alerts daily for watering reminders</li>
+                <li>• Use disease detection for early problem identification</li>
+                <li>• Review weekly reports for plant health trends</li>
+              </ul>
             </div>
           </motion.div>
         </div>

@@ -36,9 +36,13 @@ const Onboarding = () => {
 
   useEffect(() => {
     const hasOnboarded = localStorage.getItem('onboarding-complete');
-    if (hasOnboarded === 'true') {
-      navigate('/', { replace: true });
+    // Only redirect if onboarding is complete AND not accessed via settings
+    const accessedViaSettings = sessionStorage.getItem('onboarding-from-settings');
+    if (hasOnboarded === 'true' && !accessedViaSettings) {
+      navigate('/dashboard', { replace: true });
     }
+    // Clear the settings flag after check
+    sessionStorage.removeItem('onboarding-from-settings');
   }, [navigate]);
 
   const handleLanguageSelect = (lang: Language) => {
